@@ -10,6 +10,7 @@ __pycache__/
 Include/
 Scripts/
 .idea/
+Lib/
 pyvenv.cfg
 # Distribution / packaging
 .Python

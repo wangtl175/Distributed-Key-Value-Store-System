@@ -1,0 +1,36 @@
+syntax = "proto3";
+package ChunkServer;
+message Reply{
+  string msg = 1;
+  int32 code = 2;
+}
+message Key{
+  string key = 1;
+}
+message Value{
+  string key = 1;
+  string value = 2;
+  string type = 3;
+  string msg = 4;
+  int32 code = 5;
+}
+message Primary{
+  string ip = 1;
+  string port = 2;
+}
+message Secondary{
+  string id = 1;
+  string ip = 2;
+  string port = 3;
+}
+message Empty{}
+service ChunkServer{
+  rpc heart(Empty) returns (Reply){}
+  rpc get_key(Key) returns (Value){}
+  rpc insert_key(Value) returns (Reply){}
+  rpc delete_key(Key) returns (Reply){}
+  rpc update_key(Value) returns (Reply){}
+  rpc add_secondary(Secondary) returns (Reply){}
+  rpc sync_tables(Empty) returns (stream Value){}
+  rpc get_primary(Empty) returns (Primary){}
+}

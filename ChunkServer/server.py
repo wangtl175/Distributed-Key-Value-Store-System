@@ -19,7 +19,7 @@ import settings
 
 
 class ChunkServer(ChunkServer_pb2_grpc.ChunkServerServicer):
-    def __init__(self, id, ip, port, master_ip, master_port, role='primary', primary_ip=None,
+    def __init__(self, id, ip, port, master_ip, master_port, role='primary', primary_id=None, primary_ip=None,
                  primary_port=None):
         self.id = id
         self.ip = ip
@@ -28,43 +28,51 @@ class ChunkServer(ChunkServer_pb2_grpc.ChunkServerServicer):
         self.master_ip = master_ip
         self.master_port = master_port
         self.master_status = True
+        self.primary_id = primary_id
         self.primary_ip = primary_ip
         self.primary_port = primary_port
         self.secondaries = {}
+        self.mates = {}
+        self.table = {}  # id:{value:...,type:...}
         self.secondaries_lock = threading.Lock()
         self.table_lock = threading.Lock()
+        self.mates_lock = threading.Lock()
         if self.role == 'primary':
             if os.path.exists(settings.Table_File):
                 with open(settings.Table_File, 'r') as file:
                     self.table = json.load(file)
             else:
-                self.table = {}  # id:{value:...,type:...}
-            with grpc.insecure_channel('{}:{}'.format(self.master_ip, self.master_port)) as channel:
-                stub = MasterServer_pb2_grpc.MasterServerStub(channel)
-                response = stub.add_chunk(
-                    MasterServer_pb2.Chunk(id=self.id, ip=self.ip, port=self.port, num_keys=len(self.table)))
-                if response.code != 200:
-                    print('error: {}'.format(response.msg))
-                    r = input('Replace the existed chunk? (y or n)')
-                    if r == 'y':
-                        response = stub.replace_chunk(
-                            MasterServer_pb2.Replace(old_chunk=MasterServer_pb2.Chunk(id=self.id),
-                                                     new_chunk=MasterServer_pb2.Chunk(id=self.id, ip=self.ip,
-                                                                                      port=self.port,
-                                                                                      num_keys=len(self.table))))
-                        if response.code != 200:
-                            print('add chunk failed, error: {}'.format(response.msg))
+                with grpc.insecure_channel('{}:{}'.format(self.master_ip, self.master_port)) as channel:
+                    stub = MasterServer_pb2_grpc.MasterServerStub(channel)
+                    response = stub.add_chunk(
+                        MasterServer_pb2.Chunk(id=self.id, ip=self.ip, port=self.port, num_keys=len(self.table)))
+                    if response.code != 200:
+                        print('error: {}'.format(response.msg))
+                        r = input('Replace the existed chunk? (y or n)')
+                        if r == 'y':
+                            response = stub.replace_chunk(
+                                MasterServer_pb2.Replace(old_chunk=MasterServer_pb2.Chunk(id=self.id),
+                                                         new_chunk=MasterServer_pb2.Chunk(id=self.id, ip=self.ip,
+                                                                                          port=self.port,
+                                                                                          num_keys=len(self.table))))
+                            if response.code != 200:
+                                print('add chunk failed, error: {}'.format(response.msg))
+                                exit(0)
+                        else:
                             exit(0)
-                    else:
-                        exit(0)
         else:
-            self.table = {}
             with grpc.insecure_channel('{}:{}'.format(self.primary_ip, self.primary_port)) as channel:
                 stub = ChunkServer_pb2_grpc.ChunkServerStub(channel)
                 response = stub.sync_tables(ChunkServer_pb2.Empty())
                 for item in response:
                     self.table[item.key] = {'value': item.value, 'type': item.type}
-                stub.add_secondary(ChunkServer_pb2.Secondary(id=self.id, ip=self.ip, port=self.port))
+                response = stub.sync_mates(ChunkServer_pb2.Empty())
+                for mate in response:
+                    self.mates[mate.id] = {'ip': mate.ip, 'port': mate.port}
+                response = stub.add_secondary(ChunkServer_pb2.Secondary(id=self.id, ip=self.ip, port=self.port))
+                if response.code != 200:
+                    print('error: {}'.format(response.msg))
+                    exit(0)
 
     def heart(self, request, context):
         return ChunkServer_pb2.Reply(msg='I am chunk {}'.format(self.id), code=200)
@@ -83,6 +91,55 @@ class ChunkServer(ChunkServer_pb2_grpc.ChunkServerServicer):
             except Exception as e:
                 print(e)
                 del self.secondaries[secondary]
+
+    def add_mates(self, request, context):
+        self.mates_lock.acquire()
+        if request.id in self.mates:
+            self.mates_lock.release()
+            return ChunkServer_pb2.Reply(msg='mate existed', code=400)
+        if request.id != self.id:
+            self.mates[request.id] = {'ip': request.ip, 'port': request.port}
+        self.mates_lock.release()
+        return ChunkServer_pb2.Reply(msg='ok', code=200)
+
+    def sync_mates(self, request, context):
+        for mate in self.mates:
+            yield ChunkServer_pb2.Secondary(id=self.mates['id'], ip=self.mates[mate]['ip'],
+                                            port=self.mates[mate]['port'])
+
+    def _select(self):
+        primary_id = self.id
+        for mate in self.mates:
+            with grpc.insecure_channel('{}:{}'.format(self.mates[mate]['ip'], self.mates[mate]['port'])) as channel:
+                stub = ChunkServer_pb2_grpc.ChunkServerStub(channel)
+                response = stub.select_primary(ChunkServer_pb2.Secondary(id=self.id, ip=self.ip, port=self.port))
+                if response.id != self.id:
+                    primary_id = response.id
+                    break
+        if primary_id == self.id:
+            for mate in self.mates:
+                with grpc.insecure_channel('{}:{}'.format(self.mates[mate]['ip'], self.mates[mate]['port'])) as channel:
+                    stub = ChunkServer_pb2_grpc.ChunkServerStub(channel)
+                    stub.replace_primary(ChunkServer_pb2.Primary(id=self.id, ip=self.ip, port=self.port))
+            with grpc.insecure_channel('{}:{}'.format(self.master_ip, self.master_port)) as channel:
+                stub = MasterServer_pb2_grpc.MasterServerStub(channel)
+                stub.replace_chunk(
+                    MasterServer_pb2.Replace(old_chunk=MasterServer_pb2.Chunk(id=self.primary_id, ip=self.primary_ip,
+                                                                              port=self.primary_port),
+                                             new_chunk=MasterServer_pb2.Chunk(id=self.id, ip=self.ip, port=self.port,
+                                                                              num_keys=len(self.table))))
+
+    def select_primary(self, request, context):
+        if int(request.id) > int(self.id):
+            return request
+        else:
+            self._select()
+            return ChunkServer_pb2.Secondary(id=self.id, ip=self.ip, port=self.port)
+
+    def replace_primary(self, request, context):
+        self.master_ip = request.ip
+        self.master_port = request.port
+        return ChunkServer_pb2.Reply(msg='ok', code=200)
 
     def insert_key(self, request, context):
         self.table_lock.acquire()
@@ -120,6 +177,7 @@ class ChunkServer(ChunkServer_pb2_grpc.ChunkServerServicer):
             self.secondaries_lock.release()
             return ChunkServer_pb2.Reply(msg='secondary existed', code=400)
         self.secondaries[request.id] = {'ip': request.ip, 'port': request.port}
+        self._update_secondary('add_mates', request)
         self.secondaries_lock.release()
         return ChunkServer_pb2.Reply(msg='ok', code=200)
 
@@ -162,6 +220,17 @@ class ChunkServer(ChunkServer_pb2_grpc.ChunkServerServicer):
                 except Exception as e:
                     print(e)
                     del self.secondaries[secondary]
+            for mate in list(self.mates.keys()):
+                try:
+                    with grpc.insecure_channel(
+                            '{}:{}'.format(self.mates[mate]['ip'], self.mates[mate]['port'])) as channel:
+                        stub = ChunkServer_pb2_grpc.ChunkServerStub(channel)
+                        response = stub.heart(ChunkServer_pb2.Empty())
+                        if response.code != 200:
+                            del self.mates[mate]
+                except Exception as e:
+                    print(e)
+                    del self.mates[mate]
             try:
                 with grpc.insecure_channel('{}:{}'.format(self.master_ip, self.master_port)) as channel:
                     stub = MasterServer_pb2_grpc.MasterServerStub(channel)
@@ -173,7 +242,17 @@ class ChunkServer(ChunkServer_pb2_grpc.ChunkServerServicer):
             except Exception as e:
                 print(e)
                 self.master_status = False
-            time.sleep(1800)
+            if self.role != 'primary':
+                try:
+                    with grpc.insecure_channel('{}:{}'.format(self.primary_ip, self.primary_port)) as channel:
+                        stub = ChunkServer_pb2_grpc.ChunkServerStub(channel)
+                        response = stub.heart(ChunkServer_pb2.Empty())
+                        if response.code != 200:
+                            self._select()
+                except Exception as e:
+                    print('error: {}'.format(e))
+                    self._select()
+            time.sleep(10)
 
     def run(self):
         detect_heart = threading.Thread(target=self._detect_heart)
@@ -186,9 +265,10 @@ class ChunkServer(ChunkServer_pb2_grpc.ChunkServerServicer):
         detect_heart.join()
 
 
-def run_server(id, ip, port, master_ip, master_port, role='primary', primary_ip=None, primary_port=None):
+def run_server(id, ip, port, master_ip, master_port, role='primary', primary_id=None, primary_ip=None,
+               primary_port=None):
     chunk = ChunkServer(id=id, ip=ip, port=port, master_ip=master_ip, master_port=master_port, role=role,
-                        primary_ip=primary_ip, primary_port=primary_port)
+                        primary_id=primary_id, primary_ip=primary_ip, primary_port=primary_port)
     chunk_run = threading.Thread(target=chunk.run)
     chunk_run.setDaemon(True)
     chunk_run.start()
@@ -208,15 +288,16 @@ if __name__ == '__main__':
     parser.add_argument('master_ip', help='ip of master node', type=str)
     parser.add_argument('master_port', help='port of master node', type=str)
     parser.add_argument('-s', '--secondary', help='secondary node', action='store_true')
+    parser.add_argument('-d', '--primary_id', help='id of the primary node', type=str)
     parser.add_argument('-i', '--primary_ip', help='ip of the primary node', type=str)
     parser.add_argument('-p', '--primary_port', help='port of the primary node', type=str)
     args = parser.parse_args()
-    if args.secondary and (args.primary_ip is None or args.primary_port is None):
-        print('usage: server.py [-h] [-s] [-i PRIMARY_IP] [-p PRIMARY_PORT]\n'
+    if args.secondary and (args.primary_ip is None or args.primary_port is None or args.primary_id is None):
+        print('usage: server.py [-h] [-s] [-d PRIMARY_ID] [-i PRIMARY_IP] [-p PRIMARY_PORT]\n'
               '                 id ip port master_ip master_port\n'
-              'server.py: error: the following arguments are required: PRIMARY_IP PRIMARY_PORT')
+              'server.py: error: the following arguments are required: PRIMARY_ID PRIMARY_IP PRIMARY_PORT')
     if args.secondary:
         run_server(args.id, args.ip, args.port, args.master_ip, args.master_port, 'secondary',
-                   args.primary_ip, args.primary_port)
+                   args.primary_id, args.primary_ip, args.primary_port)
     else:
         run_server(args.id, args.ip, args.port, args.master_ip, args.master_port)

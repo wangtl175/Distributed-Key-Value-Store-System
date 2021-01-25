@@ -56,7 +56,10 @@ class MasterServer(MasterServer_pb2_grpc.MasterServerServicer):
                 response = stub.sync_directory(MasterServer_pb2.Empty())
                 for item in response:
                     self.directory[item.key] = item.chunk
-                stub.add_secondary(MasterServer_pb2.Secondary(id=self.id, ip=self.ip, port=self.port))
+                response = stub.add_secondary(MasterServer_pb2.Secondary(id=self.id, ip=self.ip, port=self.port))
+                if response.code != 200:
+                    print('error: {}'.format(response.msg))
+                    exit(0)
 
     # 后继由从节点来同步
     def add_secondary(self, request, context):

@@ -44,10 +44,30 @@ class ChunkServerStub(object):
                 request_serializer=ChunkServer__pb2.Secondary.SerializeToString,
                 response_deserializer=ChunkServer__pb2.Reply.FromString,
                 )
+        self.add_mates = channel.unary_unary(
+                '/ChunkServer.ChunkServer/add_mates',
+                request_serializer=ChunkServer__pb2.Secondary.SerializeToString,
+                response_deserializer=ChunkServer__pb2.Reply.FromString,
+                )
+        self.sync_mates = channel.unary_stream(
+                '/ChunkServer.ChunkServer/sync_mates',
+                request_serializer=ChunkServer__pb2.Empty.SerializeToString,
+                response_deserializer=ChunkServer__pb2.Secondary.FromString,
+                )
         self.sync_tables = channel.unary_stream(
                 '/ChunkServer.ChunkServer/sync_tables',
                 request_serializer=ChunkServer__pb2.Empty.SerializeToString,
                 response_deserializer=ChunkServer__pb2.Value.FromString,
+                )
+        self.select_primary = channel.unary_unary(
+                '/ChunkServer.ChunkServer/select_primary',
+                request_serializer=ChunkServer__pb2.Secondary.SerializeToString,
+                response_deserializer=ChunkServer__pb2.Secondary.FromString,
+                )
+        self.replace_primary = channel.unary_unary(
+                '/ChunkServer.ChunkServer/replace_primary',
+                request_serializer=ChunkServer__pb2.Primary.SerializeToString,
+                response_deserializer=ChunkServer__pb2.Reply.FromString,
                 )
         self.get_primary = channel.unary_unary(
                 '/ChunkServer.ChunkServer/get_primary',
@@ -95,7 +115,31 @@ class ChunkServerServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def add_mates(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def sync_mates(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def sync_tables(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def select_primary(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def replace_primary(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -140,10 +184,30 @@ def add_ChunkServerServicer_to_server(servicer, server):
                     request_deserializer=ChunkServer__pb2.Secondary.FromString,
                     response_serializer=ChunkServer__pb2.Reply.SerializeToString,
             ),
+            'add_mates': grpc.unary_unary_rpc_method_handler(
+                    servicer.add_mates,
+                    request_deserializer=ChunkServer__pb2.Secondary.FromString,
+                    response_serializer=ChunkServer__pb2.Reply.SerializeToString,
+            ),
+            'sync_mates': grpc.unary_stream_rpc_method_handler(
+                    servicer.sync_mates,
+                    request_deserializer=ChunkServer__pb2.Empty.FromString,
+                    response_serializer=ChunkServer__pb2.Secondary.SerializeToString,
+            ),
             'sync_tables': grpc.unary_stream_rpc_method_handler(
                     servicer.sync_tables,
                     request_deserializer=ChunkServer__pb2.Empty.FromString,
                     response_serializer=ChunkServer__pb2.Value.SerializeToString,
+            ),
+            'select_primary': grpc.unary_unary_rpc_method_handler(
+                    servicer.select_primary,
+                    request_deserializer=ChunkServer__pb2.Secondary.FromString,
+                    response_serializer=ChunkServer__pb2.Secondary.SerializeToString,
+            ),
+            'replace_primary': grpc.unary_unary_rpc_method_handler(
+                    servicer.replace_primary,
+                    request_deserializer=ChunkServer__pb2.Primary.FromString,
+                    response_serializer=ChunkServer__pb2.Reply.SerializeToString,
             ),
             'get_primary': grpc.unary_unary_rpc_method_handler(
                     servicer.get_primary,
@@ -263,6 +327,40 @@ class ChunkServer(object):
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
+    def add_mates(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/ChunkServer.ChunkServer/add_mates',
+            ChunkServer__pb2.Secondary.SerializeToString,
+            ChunkServer__pb2.Reply.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def sync_mates(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_stream(request, target, '/ChunkServer.ChunkServer/sync_mates',
+            ChunkServer__pb2.Empty.SerializeToString,
+            ChunkServer__pb2.Secondary.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
     def sync_tables(request,
             target,
             options=(),
@@ -276,6 +374,40 @@ class ChunkServer(object):
         return grpc.experimental.unary_stream(request, target, '/ChunkServer.ChunkServer/sync_tables',
             ChunkServer__pb2.Empty.SerializeToString,
             ChunkServer__pb2.Value.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def select_primary(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/ChunkServer.ChunkServer/select_primary',
+            ChunkServer__pb2.Secondary.SerializeToString,
+            ChunkServer__pb2.Secondary.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def replace_primary(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/ChunkServer.ChunkServer/replace_primary',
+            ChunkServer__pb2.Primary.SerializeToString,
+            ChunkServer__pb2.Reply.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 

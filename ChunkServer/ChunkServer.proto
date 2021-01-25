@@ -15,8 +15,9 @@ message Value{
   int32 code = 5;
 }
 message Primary{
-  string ip = 1;
-  string port = 2;
+  string id = 1;
+  string ip = 2;
+  string port = 3;
 }
 message Secondary{
   string id = 1;
@@ -31,6 +32,10 @@ service ChunkServer{
   rpc delete_key(Key) returns (Reply){}
   rpc update_key(Value) returns (Reply){}
   rpc add_secondary(Secondary) returns (Reply){}
+  rpc add_mates(Secondary) returns (Reply){}
+  rpc sync_mates(Empty) returns (stream Secondary){}
   rpc sync_tables(Empty) returns (stream Value){}
+  rpc select_primary(Secondary) returns (Secondary){}
+  rpc replace_primary(Primary) returns (Reply){}
   rpc get_primary(Empty) returns (Primary){}
 }

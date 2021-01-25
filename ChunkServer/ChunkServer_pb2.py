@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x11\x43hunkServer.proto\x12\x0b\x43hunkServer\"\"\n\x05Reply\x12\x0b\n\x03msg\x18\x01 \x01(\t\x12\x0c\n\x04\x63ode\x18\x02 \x01(\x05\"\x12\n\x03Key\x12\x0b\n\x03key\x18\x01 \x01(\t\"L\n\x05Value\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\x12\x0c\n\x04type\x18\x03 \x01(\t\x12\x0b\n\x03msg\x18\x04 \x01(\t\x12\x0c\n\x04\x63ode\x18\x05 \x01(\x05\"#\n\x07Primary\x12\n\n\x02ip\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\t\"1\n\tSecondary\x12\n\n\x02id\x18\x01 \x01(\t\x12\n\n\x02ip\x18\x02 \x01(\t\x12\x0c\n\x04port\x18\x03 \x01(\t\"\x07\n\x05\x45mpty2\xce\x03\n\x0b\x43hunkServer\x12\x31\n\x05heart\x12\x12.ChunkServer.Empty\x1a\x12.ChunkServer.Reply\"\x00\x12\x31\n\x07get_key\x12\x10.ChunkServer.Key\x1a\x12.ChunkServer.Value\"\x00\x12\x36\n\ninsert_key\x12\x12.ChunkServer.Value\x1a\x12.ChunkServer.Reply\"\x00\x12\x34\n\ndelete_key\x12\x10.ChunkServer.Key\x1a\x12.ChunkServer.Reply\"\x00\x12\x36\n\nupdate_key\x12\x12.ChunkServer.Value\x1a\x12.ChunkServer.Reply\"\x00\x12=\n\radd_secondary\x12\x16.ChunkServer.Secondary\x1a\x12.ChunkServer.Reply\"\x00\x12\x39\n\x0bsync_tables\x12\x12.ChunkServer.Empty\x1a\x12.ChunkServer.Value\"\x00\x30\x01\x12\x39\n\x0bget_primary\x12\x12.ChunkServer.Empty\x1a\x14.ChunkServer.Primary\"\x00\x62\x06proto3'
+  serialized_pb=b'\n\x11\x43hunkServer.proto\x12\x0b\x43hunkServer\"\"\n\x05Reply\x12\x0b\n\x03msg\x18\x01 \x01(\t\x12\x0c\n\x04\x63ode\x18\x02 \x01(\x05\"\x12\n\x03Key\x12\x0b\n\x03key\x18\x01 \x01(\t\"L\n\x05Value\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\x12\x0c\n\x04type\x18\x03 \x01(\t\x12\x0b\n\x03msg\x18\x04 \x01(\t\x12\x0c\n\x04\x63ode\x18\x05 \x01(\x05\"/\n\x07Primary\x12\n\n\x02id\x18\x01 \x01(\t\x12\n\n\x02ip\x18\x02 \x01(\t\x12\x0c\n\x04port\x18\x03 \x01(\t\"1\n\tSecondary\x12\n\n\x02id\x18\x01 \x01(\t\x12\n\n\x02ip\x18\x02 \x01(\t\x12\x0c\n\x04port\x18\x03 \x01(\t\"\x07\n\x05\x45mpty2\xca\x05\n\x0b\x43hunkServer\x12\x31\n\x05heart\x12\x12.ChunkServer.Empty\x1a\x12.ChunkServer.Reply\"\x00\x12\x31\n\x07get_key\x12\x10.ChunkServer.Key\x1a\x12.ChunkServer.Value\"\x00\x12\x36\n\ninsert_key\x12\x12.ChunkServer.Value\x1a\x12.ChunkServer.Reply\"\x00\x12\x34\n\ndelete_key\x12\x10.ChunkServer.Key\x1a\x12.ChunkServer.Reply\"\x00\x12\x36\n\nupdate_key\x12\x12.ChunkServer.Value\x1a\x12.ChunkServer.Reply\"\x00\x12=\n\radd_secondary\x12\x16.ChunkServer.Secondary\x1a\x12.ChunkServer.Reply\"\x00\x12\x39\n\tadd_mates\x12\x16.ChunkServer.Secondary\x1a\x12.ChunkServer.Reply\"\x00\x12<\n\nsync_mates\x12\x12.ChunkServer.Empty\x1a\x16.ChunkServer.Secondary\"\x00\x30\x01\x12\x39\n\x0bsync_tables\x12\x12.ChunkServer.Empty\x1a\x12.ChunkServer.Value\"\x00\x30\x01\x12\x42\n\x0eselect_primary\x12\x16.ChunkServer.Secondary\x1a\x16.ChunkServer.Secondary\"\x00\x12=\n\x0freplace_primary\x12\x14.ChunkServer.Primary\x1a\x12.ChunkServer.Reply\"\x00\x12\x39\n\x0bget_primary\x12\x12.ChunkServer.Empty\x1a\x14.ChunkServer.Primary\"\x00\x62\x06proto3'
 )
 
 
@@ -165,15 +165,22 @@ _PRIMARY = _descriptor.Descriptor(
   create_key=_descriptor._internal_create_key,
   fields=[
     _descriptor.FieldDescriptor(
-      name='ip', full_name='ChunkServer.Primary.ip', index=0,
+      name='id', full_name='ChunkServer.Primary.id', index=0,
       number=1, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='port', full_name='ChunkServer.Primary.port', index=1,
+      name='ip', full_name='ChunkServer.Primary.ip', index=1,
       number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='port', full_name='ChunkServer.Primary.port', index=2,
+      number=3, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -191,7 +198,7 @@ _PRIMARY = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=168,
-  serialized_end=203,
+  serialized_end=215,
 )
 
 
@@ -236,8 +243,8 @@ _SECONDARY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=205,
-  serialized_end=254,
+  serialized_start=217,
+  serialized_end=266,
 )
 
 
@@ -261,8 +268,8 @@ _EMPTY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=256,
-  serialized_end=263,
+  serialized_start=268,
+  serialized_end=275,
 )
 
 DESCRIPTOR.message_types_by_name['Reply'] = _REPLY
@@ -324,8 +331,8 @@ _CHUNKSERVER = _descriptor.ServiceDescriptor(
   index=0,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=266,
-  serialized_end=728,
+  serialized_start=278,
+  serialized_end=992,
   methods=[
   _descriptor.MethodDescriptor(
     name='heart',
@@ -388,9 +395,29 @@ _CHUNKSERVER = _descriptor.ServiceDescriptor(
     create_key=_descriptor._internal_create_key,
   ),
   _descriptor.MethodDescriptor(
+    name='add_mates',
+    full_name='ChunkServer.ChunkServer.add_mates',
+    index=6,
+    containing_service=None,
+    input_type=_SECONDARY,
+    output_type=_REPLY,
+    serialized_options=None,
+    create_key=_descriptor._internal_create_key,
+  ),
+  _descriptor.MethodDescriptor(
+    name='sync_mates',
+    full_name='ChunkServer.ChunkServer.sync_mates',
+    index=7,
+    containing_service=None,
+    input_type=_EMPTY,
+    output_type=_SECONDARY,
+    serialized_options=None,
+    create_key=_descriptor._internal_create_key,
+  ),
+  _descriptor.MethodDescriptor(
     name='sync_tables',
     full_name='ChunkServer.ChunkServer.sync_tables',
-    index=6,
+    index=8,
     containing_service=None,
     input_type=_EMPTY,
     output_type=_VALUE,
@@ -398,9 +425,29 @@ _CHUNKSERVER = _descriptor.ServiceDescriptor(
     create_key=_descriptor._internal_create_key,
   ),
   _descriptor.MethodDescriptor(
+    name='select_primary',
+    full_name='ChunkServer.ChunkServer.select_primary',
+    index=9,
+    containing_service=None,
+    input_type=_SECONDARY,
+    output_type=_SECONDARY,
+    serialized_options=None,
+    create_key=_descriptor._internal_create_key,
+  ),
+  _descriptor.MethodDescriptor(
+    name='replace_primary',
+    full_name='ChunkServer.ChunkServer.replace_primary',
+    index=10,
+    containing_service=None,
+    input_type=_PRIMARY,
+    output_type=_REPLY,
+    serialized_options=None,
+    create_key=_descriptor._internal_create_key,
+  ),
+  _descriptor.MethodDescriptor(
     name='get_primary',
     full_name='ChunkServer.ChunkServer.get_primary',
-    index=7,
+    index=11,
     containing_service=None,
     input_type=_EMPTY,
     output_type=_PRIMARY,

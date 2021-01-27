@@ -52,7 +52,7 @@ class KeyValueClient(object):
             response = self.master_stub.get_chunk(MasterServer_pb2.Key(key=key))
             if response.code == 200:
                 # return {'id': response.id, 'ip': response.ip, 'port': response.port}
-                print('connect to chunk {}'.format(response.id))
+                # print('connect to chunk {}'.format(response.id))
                 with grpc.insecure_channel('{}:{}'.format(response.ip, response.port)) as channel:
                     stub = ChunkServer_pb2_grpc.ChunkServerStub(channel)
                     response = stub.get_key(ChunkServer_pb2.Key(key=key))

@@ -21,7 +21,7 @@ import settings
 # 同时决定新插入的key-value堆的插入位置
 
 
-class MasterServer(MasterServer_pb2_grpc.MasterServerServicer):
+class MasterService(MasterServer_pb2_grpc.MasterServerServicer):
     def __init__(self, id, ip, port, role='primary', primary_ip=None, primary_port=None):
         self.id = id
         self.ip = ip
@@ -251,7 +251,7 @@ class MasterServer(MasterServer_pb2_grpc.MasterServerServicer):
 
 
 def run_server(id, ip, port, role='primary', primary_ip=None, primary_port=None):
-    master = MasterServer(id=id, ip=ip, port=port, role=role, primary_ip=primary_ip, primary_port=primary_port)
+    master = MasterService(id=id, ip=ip, port=port, role=role, primary_ip=primary_ip, primary_port=primary_port)
     master_run = threading.Thread(target=master.run)
     master_run.setDaemon(True)
     master_run.start()

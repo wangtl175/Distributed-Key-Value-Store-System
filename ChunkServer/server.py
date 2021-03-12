@@ -203,15 +203,16 @@ class ChunkService(ChunkServer_pb2_grpc.ChunkServerServicer):
 
     def _persistence(self):
         while True:
-            with open(settings.Table_File, 'w') as file:
-                json.dump(self.table, file)
-            with open(settings.Info_File, 'w') as file:
-                info = {'id': self.id, 'ip': self.ip, 'port': self.port, 'master_ip': self.master_ip,
-                        'master_port': self.master_port, 'role': self.role, 'primary_ip': self.primary_port,
-                        'primary_port': self.primary_port}
-                json.dump(info, file)
-            # time.sleep(3600)
-            time.sleep(settings.Persistence_Time)
+            if self.role == 'secondary':  # 主节点不持久化，如果主节点崩溃时，可以从从节点中恢复
+                with open(settings.Table_File, 'w') as file:
+                    json.dump(self.table, file)
+                with open(settings.Info_File, 'w') as file:
+                    info = {'id': self.id, 'ip': self.ip, 'port': self.port, 'master_ip': self.master_ip,
+                            'master_port': self.master_port, 'role': self.role, 'primary_ip': self.primary_port,
+                            'primary_port': self.primary_port}
+                    json.dump(info, file)
+                # time.sleep(3600)
+                time.sleep(settings.Persistence_Time)
 
     def _detect_heart(self):
         while True:

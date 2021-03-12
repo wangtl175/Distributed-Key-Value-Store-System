@@ -143,6 +143,8 @@ class ChunkService(ChunkServer_pb2_grpc.ChunkServerServicer):
         return ChunkServer_pb2.Reply(msg='ok', code=200)
 
     def insert_key(self, request, context):
+        if self.role == 'secondary':
+            return ChunkServer_pb2.Reply(msg='slave read only', code=403)
         self.table_lock.acquire()
         if request.key in self.table:
             self.table_lock.release()
@@ -163,6 +165,8 @@ class ChunkService(ChunkServer_pb2_grpc.ChunkServerServicer):
         return ChunkServer_pb2.Reply(msg='ok', code=200)
 
     def update_key(self, request, context):
+        if self.role == 'secondary':
+            return ChunkServer_pb2.Reply(msg='slave read only', code=403)
         self.table_lock.acquire()
         if request.key not in self.table:
             self.table_lock.release()
